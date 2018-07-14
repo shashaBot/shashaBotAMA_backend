@@ -5,13 +5,13 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const morgan = require('morgan')
 const app = express()
-
+const https = require('https')
 app.use(bodyParser.json());
 
 app.use(morgan('dev'));
 
 // Whitelist owned domains or null/file domains and disallow others
-var whitelist = ['null', 'file://', 'http://shashwatgulyani.me', 'https://shashabot.github.io', 'http://127.0.0.1:8080'];
+var whitelist = ['null', 'file://', 'http://shashwatgulyani.me', 'https://shashwatgulyani.me', 'https://shashabot.github.io', 'http://127.0.0.1:8080'];
 var corsOptions = {
 	origin: function(origin, callback) {
 		if (!origin) return callback(null, true);
@@ -36,9 +36,22 @@ app.post('/api/detectIntent', (req, res) => {
 	})
 })
 
-// Start server on port in env (if given), else port 8000
-const port = process.env.PORT || 8000
 
-const server = app.listen(port, () => {
-	console.log('Server started on port ' + port)
-})
+if(process.env.HTTPS) {
+	let serverOpts = {
+		key: fs.readFileSync(process.env.SSL_PRIVATE_KEY),
+		cert: fs.readFileSync(process.env.SSL_CERT)
+	}
+
+	let httpsServer = https.createServer(serverOpts, app)
+	httpsServer.listen(443, () => {
+		console.log('Secure server started on port 443')
+	})
+}
+else {
+	// Start server on port in env (if given), else port 8000
+	const port = process.env.PORT || 8000
+	const server = app.listen(port, () => {
+		console.log('Server started on port ' + port)
+	})
+}

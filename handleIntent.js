@@ -1,8 +1,8 @@
 require('dotenv').config()
 
-const projectId = process.env.PROJECT_ID; //https://dialogflow.com/docs/agents#settings
-const sessionId = 'quickstart-session-id';
-const languageCode = 'en-US';
+const projectId = process.env.GCLOUD_PROJECT; //https://dialogflow.com/docs/agents#settings
+const sessionId = 'new-session';		// should create new session for each new user
+const languageCode = 'en';
 
 // Instantiate a DialogFlow client.
 const dialogflow = require('dialogflow');
@@ -29,13 +29,19 @@ module.exports = (query, callback) => {
 		.detectIntent(request)
 		.then(responses => {
 			console.log('Detected intent');
+			console.log('responses', responses)
 			const result = responses[0].queryResult;
 			console.log(`  Query: ${result.queryText}`);
 			console.log(`  Response: ${result.fulfillmentText}`);
 			if (result.intent) {
 				console.log(`  Intent: ${result.intent.displayName}`);
 				return callback(null, result)
-			} else {
+			} 
+			else if(result.action) {
+				console.log(` Action matched without intent: ${result.action}`)
+				return callback(null, result)
+			} 
+			else {
 				console.log(`  No intent matched.`);
 				return callback(new Error('No intent matched'))
 			}
